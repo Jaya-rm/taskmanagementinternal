@@ -1,0 +1,39 @@
+{
+  "summary": "First-finish smoke test of Task Relay MVP. Backend CRUD + owner-PIN gating verified via curl on public URL. Frontend e2e flow exercised: passcode auth (wrong+right), member pick, owner PIN unlock (wrong+right), task create/edit/status-change/delete, Board/Day/Log tab navigation, search filter, and log entries. All critical paths pass. App seeds 8 members and default settings on startup.",
+  "tested_scope": ["backend", "frontend", "auth", "integration"],
+  "passed": [
+    "GET /api/members returns 8 seeded members",
+    "GET /api/settings returns {team_name: 'Category team'}",
+    "POST /api/auth/team with 'rmcategory26' -> {ok:true}; wrong passcode -> {ok:false}",
+    "POST /api/auth/owner with '9090' -> {ok:true}; wrong PIN -> {ok:false}",
+    "Owner-only endpoints return 403 'Owner PIN required' without X-Owner-Pin header",
+    "POST /api/members (with X-Owner-Pin:9090) creates member 'Ananya'; logged as member_create",
+    "DELETE /api/members/{id} with PIN returns {ok:true}; without PIN returns 403",
+    "POST /api/tasks creates task (requires assigned_by/assigned_date/due_date); PUT /api/tasks/{id} updates status",
+    "DELETE /api/tasks/{id} requires owner PIN (403 without, 200 with)",
+    "GET /api/logs returns chronological log entries",
+    "Frontend: AuthGate -> wrong passcode kept user on gate, correct passcode revealed member dropdown",
+    "Member pick lands on Board with tabs visible",
+    "Owner PIN modal: wrong PIN kept modal, correct PIN unlocked Settings/Lock buttons (Owner badge in footer)",
+    "Task create via composer succeeds and appears on board",
+    "Inline status dropdown change persists (Todo -> Doing)",
+    "Task edit via composer updates title on board",
+    "Day report tab loads with prev/next/today nav",
+    "Log tab shows 7 entries after activity",
+    "Search filter input accepts text",
+    "Owner task delete works; 'Task deleted' toast visible; card removed from board"
+  ],
+  "failed": [],
+  "notes": [
+    "Behavior (not a bug): Entering the correct Owner PIN auto-opens the Owner Settings overlay, which can intercept subsequent header clicks until dismissed. Tests handle by pressing Escape. Confirm with main agent if this is intended UX.",
+    "Task create requires assigned_by/assigned_date/due_date — composer correctly supplies defaults; manual API callers must include them.",
+    "/app/memory/test_credentials.md is empty; credentials were taken from the task brief (passcode rmcategory26 / PIN 9090). Recommend main agent populate the file."
+  ],
+  "action_items": [
+    "Optionally: populate /app/memory/test_credentials.md with passcode 'rmcategory26' and PIN '9090' for future test runs.",
+    "Optionally: confirm intended behavior of auto-opening Owner Settings after PIN unlock (or add a header-trigger flag so PIN unlock alone does not pop settings)."
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "retest_needed": false,
+  "full_testing_deferred": true
+}
